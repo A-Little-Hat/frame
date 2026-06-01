@@ -1081,7 +1081,7 @@
   function downloadTxt(content) {
     const now   = new Date();
     const stamp = formatTimestamp(now);
-    const fname = `image_${stamp}.txt`;
+    const fname = `doc_frame_${stamp}.txt`;
     const blob  = new Blob([content], { type: 'text/plain' });
     triggerDownload(URL.createObjectURL(blob), fname);
   }
