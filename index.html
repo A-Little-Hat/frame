@@ -506,8 +506,7 @@
       Decompress
     </button>
   </div>
-
-  <!-- ===================================================
+<!-- ===================================================
        CAPTURE PANEL
   =================================================== -->
   <div id="panel-camera" class="panel active">
@@ -592,4 +591,560 @@
             <tr><td>Ratio</td>           <td id="s-ratio">—</td></tr>
           </table>
 
-          <div id="ratio-badge" class="r
+          <div id="ratio-badge" class="ratio-badge" style="display:none">
+            <svg fill="none" stroke="currentColor" stroke-width="2" width="13" height="13" viewBox="0 0 24 24">
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+              <polyline points="17 6 23 6 23 12"/>
+            </svg>
+            <span id="ratio-txt"></span>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn btn-ghost" id="btn-copy-cap" onclick="copyCapHash()" disabled>
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <rect x="9" y="9" width="13" height="13" rx="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+              Copy filename
+            </button>
+          </div>
+
+          <!-- format legend -->
+          <div class="legend">
+            <p class="legend-title">📦 .pxlz file format</p>
+            <div class="legend-row"><span class="legend-key">Bytes 0–3</span> Magic: <code>PXLZ</code></div>
+            <div class="legend-row"><span class="legend-key">Bytes 4–7</span> Width (uint32 BE)</div>
+            <div class="legend-row"><span class="legend-key">Bytes 8–11</span> Height (uint32 BE)</div>
+            <div class="legend-row"><span class="legend-key">Bytes 12+</span> DEFLATE-compressed RGBA</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================
+       DECOMPRESS PANEL
+  =================================================== -->
+  <div id="panel-decomp" class="panel">
+    <div class="grid-2">
+
+      <!-- Input -->
+      <div class="card">
+        <div class="card-head">
+          <span class="card-label">Input — .pxlz File</span>
+        </div>
+        <div class="card-body">
+          <div class="drop" id="drop-zone"
+               ondragover="dzOver(event)" ondragleave="dzLeave()" ondrop="dzDrop(event)">
+            <input type="file" accept=".pxlz" id="file-in" onchange="fileChosen(event)" />
+            <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <p class="dt">Drop .pxlz here</p>
+            <p class="ds">or tap to browse</p>
+          </div>
+
+          <!-- decompression progress -->
+          <div class="progress-wrap" id="dec-prog-wrap">
+            <p class="progress-label" id="dec-prog-label">Decompressing…</p>
+            <div class="progress-track"><div class="progress-fill" id="dec-prog-fill"></div></div>
+          </div>
+
+          <table class="stats" id="dec-stats" style="display:none; margin-top:14px">
+            <tr><td>File</td>         <td id="d-file">—</td></tr>
+            <tr><td>File size</td>    <td id="d-fsize">—</td></tr>
+            <tr><td>Resolution</td>   <td id="d-res">—</td></tr>
+            <tr><td>Decompressed</td> <td id="d-decomp">—</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- Output -->
+      <div class="card">
+        <div class="card-head">
+          <span class="card-label">Reconstructed Image</span>
+          <div class="pill" id="dec-pill" style="display:none">
+            <span class="dot"></span>
+            <span id="dec-pill-txt">—</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="img-wrap" id="dec-img-wrap">
+            <p class="img-empty" id="dec-placeholder">Awaiting .pxlz file…</p>
+            <canvas id="dec-canvas" style="display:none; max-width:100%; border-radius:4px;"></canvas>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn btn-primary" id="btn-dl-png" onclick="downloadPng()" disabled>
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Download PNG
+            </button>
+            <button class="btn btn-ghost" onclick="clearDecomp()">Clear</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>PXLZ · lossless DEFLATE · 100% client-side · your pixels never leave this device</footer>
+</div>
+
+<!-- ======================================================
+     JAVASCRIPT
+====================================================== -->
+<script>
+/* =========================================================
+   GLOBALS
+========================================================= */
+let stream       = null;   // MediaStream
+let lastFilename = '';     // last saved .pxlz filename
+
+const video  = document.getElementById('cam-video');
+const canvas = document.getElementById('cap-canvas');
+const ctx    = canvas.getContext('2d');
+
+/* =========================================================
+   TABS
+========================================================= */
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(b =>
+    b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.panel').forEach(p =>
+    p.classList.toggle('active', p.id === `panel-${name}`));
+}
+
+/* =========================================================
+   TOAST
+========================================================= */
+let _toastTmr;
+function toast(msg, ms = 2600) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(_toastTmr);
+  _toastTmr = setTimeout(() => el.classList.remove('show'), ms);
+}
+
+/* =========================================================
+   CAMERA
+========================================================= */
+async function startCamera() {
+  const overlay = document.getElementById('vid-overlay');
+  const overlayMsg = document.getElementById('vid-overlay-msg');
+  overlayMsg.textContent = 'Requesting camera…';
+  overlay.classList.remove('hidden', 'err');
+
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
+      audio: false
+    });
+
+    video.srcObject = stream;
+    await new Promise(res => { video.onloadedmetadata = () => { video.play(); res(); }; });
+
+    overlay.classList.add('hidden');
+    document.getElementById('brackets').classList.add('show');
+
+    setPill('cam-pill', 'live', 'Live');
+    document.getElementById('btn-start').style.display = 'none';
+    document.getElementById('btn-stop').style.display  = '';
+    document.getElementById('btn-cap').disabled        = false;
+
+  } catch (err) {
+    overlay.classList.remove('hidden');
+    overlay.classList.add('err');
+    overlayMsg.textContent = camErrMsg(err);
+    setPill('cam-pill', 'err', 'Denied');
+  }
+}
+
+function stopCamera() {
+  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+  video.srcObject = null;
+  document.getElementById('vid-overlay').classList.remove('hidden', 'err');
+  document.getElementById('vid-overlay-msg').textContent = 'Camera stopped';
+  document.getElementById('brackets').classList.remove('show');
+  setPill('cam-pill', '', 'Idle');
+  document.getElementById('btn-start').style.display = '';
+  document.getElementById('btn-stop').style.display  = 'none';
+  document.getElementById('btn-cap').disabled        = true;
+  document.getElementById('btn-copy-cap').disabled   = true;
+}
+
+function camErrMsg(e) {
+  if (e.name === 'NotAllowedError')  return 'Permission denied. Allow camera and reload.';
+  if (e.name === 'NotFoundError')    return 'No camera found on this device.';
+  if (e.name === 'NotReadableError') return 'Camera in use by another app.';
+  return `Error: ${e.message}`;
+}
+
+/* =========================================================
+   CAPTURE & COMPRESS
+========================================================= */
+async function captureAndCompress() {
+  if (!stream) return;
+
+  /* ---- draw frame to canvas ---- */
+  const half = document.getElementById('tog-half').checked;
+  let w = video.videoWidth;
+  let h = video.videoHeight;
+  if (half) { w = Math.floor(w / 2); h = Math.floor(h / 2); }
+
+  canvas.width  = w;
+  canvas.height = h;
+  ctx.drawImage(video, 0, 0, w, h);
+
+  /* flash */
+  triggerFlash();
+
+  /* get raw RGBA pixels */
+  const imgData = ctx.getImageData(0, 0, w, h);
+  const rawBytes = imgData.data; // Uint8ClampedArray, length = w*h*4
+
+  const rawSize = rawBytes.byteLength;
+
+  /* show progress */
+  showProgress('prog-wrap', 'prog-fill', 'prog-label', 'Compressing RGBA data…');
+  await tick();
+
+  /* ---- DEFLATE compress ---- */
+  let compBytes;
+  try {
+    compBytes = await deflate(rawBytes);
+  } catch (err) {
+    hideProgress('prog-wrap');
+    toast('Compression failed: ' + err.message);
+    return;
+  }
+
+  setProgress('prog-fill', 100);
+  document.getElementById('prog-label').textContent = 'Done!';
+  await tick();
+  hideProgress('prog-wrap');
+
+  /* ---- Build .pxlz binary ----
+     Header (12 bytes):
+       [0..3]  = "PXLZ" magic
+       [4..7]  = width  (uint32, big-endian)
+       [8..11] = height (uint32, big-endian)
+     Body:
+       [12..]  = DEFLATE-compressed RGBA bytes
+  */
+  const header = new ArrayBuffer(12);
+  const dv     = new DataView(header);
+
+  // Magic bytes: ASCII "PXLZ"
+  dv.setUint8(0, 0x50); // P
+  dv.setUint8(1, 0x58); // X
+  dv.setUint8(2, 0x4C); // L
+  dv.setUint8(3, 0x5A); // Z
+  dv.setUint32(4, w, false);  // big-endian
+  dv.setUint32(8, h, false);
+
+  const pxlzBlob = new Blob([header, compBytes], { type: 'application/octet-stream' });
+
+  /* ---- stats ---- */
+  const compSize  = pxlzBlob.size;
+  const ratio     = ((1 - compSize / rawSize) * 100).toFixed(1);
+
+  document.getElementById('cap-stats').style.display = '';
+  document.getElementById('s-res').textContent   = `${w} × ${h}`;
+  document.getElementById('s-raw').textContent   = fmtBytes(rawSize);
+  document.getElementById('s-comp').textContent  = fmtBytes(compSize);
+  document.getElementById('s-ratio').textContent = `${ratio}% smaller`;
+
+  const badge = document.getElementById('ratio-badge');
+  badge.style.display = '';
+  document.getElementById('ratio-txt').textContent =
+    `${ratio}% compression · ${fmtBytes(rawSize)} → ${fmtBytes(compSize)}`;
+
+  /* ---- download ---- */
+  const ts = fmtTimestamp(new Date());
+  lastFilename = `capture_${ts}.pxlz`;
+  triggerDownload(URL.createObjectURL(pxlzBlob), lastFilename);
+
+  document.getElementById('btn-copy-cap').disabled = false;
+  toast(`Saved ${lastFilename}`);
+}
+
+/* =========================================================
+   DEFLATE via browser-native CompressionStream
+========================================================= */
+async function deflate(data) {
+  /* CompressionStream supported in Chrome 80+, Firefox 113+, Safari 16.4+ */
+  if (typeof CompressionStream === 'undefined') {
+    throw new Error('CompressionStream API not supported in this browser.');
+  }
+
+  const cs     = new CompressionStream('deflate-raw');
+  const writer = cs.writable.getWriter();
+  writer.write(data);
+  writer.close();
+
+  const chunks = [];
+  const reader = cs.readable.getReader();
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+  }
+
+  /* merge chunks */
+  const total  = chunks.reduce((a, c) => a + c.byteLength, 0);
+  const result = new Uint8Array(total);
+  let offset   = 0;
+  for (const chunk of chunks) { result.set(chunk, offset); offset += chunk.byteLength; }
+  return result;
+}
+
+async function inflate(data) {
+  if (typeof DecompressionStream === 'undefined') {
+    throw new Error('DecompressionStream API not supported in this browser.');
+  }
+
+  const ds     = new DecompressionStream('deflate-raw');
+  const writer = ds.writable.getWriter();
+  writer.write(data);
+  writer.close();
+
+  const chunks = [];
+  const reader = ds.readable.getReader();
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+  }
+
+  const total  = chunks.reduce((a, c) => a + c.byteLength, 0);
+  const result = new Uint8Array(total);
+  let offset   = 0;
+  for (const chunk of chunks) { result.set(chunk, offset); offset += chunk.byteLength; }
+  return result;
+}
+
+/* =========================================================
+   DECOMPRESS PANEL
+========================================================= */
+function dzOver(e)  { e.preventDefault(); document.getElementById('drop-zone').classList.add('over'); }
+function dzLeave()  { document.getElementById('drop-zone').classList.remove('over'); }
+function dzDrop(e)  {
+  e.preventDefault();
+  dzLeave();
+  const f = e.dataTransfer.files[0];
+  if (f) processPxlz(f);
+}
+function fileChosen(e) {
+  const f = e.target.files[0];
+  if (f) processPxlz(f);
+}
+
+async function processPxlz(file) {
+  /* validate extension loosely */
+  if (!file.name.endsWith('.pxlz')) {
+    toast('Please provide a .pxlz file');
+    return;
+  }
+
+  showProgress('dec-prog-wrap', 'dec-prog-fill', 'dec-prog-label', 'Reading file…');
+  await tick();
+
+  let arrayBuf;
+  try {
+    arrayBuf = await file.arrayBuffer();
+  } catch (e) {
+    hideProgress('dec-prog-wrap');
+    toast('Failed to read file');
+    return;
+  }
+
+  /* ---- Validate magic ---- */
+  const bytes = new Uint8Array(arrayBuf);
+  if (bytes[0] !== 0x50 || bytes[1] !== 0x58 || bytes[2] !== 0x4C || bytes[3] !== 0x5A) {
+    hideProgress('dec-prog-wrap');
+    toast('Not a valid .pxlz file (bad magic bytes)');
+    setDecPill('err', 'Bad file');
+    return;
+  }
+
+  /* ---- Parse header ---- */
+  const dv = new DataView(arrayBuf);
+  const w  = dv.getUint32(4, false);
+  const h  = dv.getUint32(8, false);
+  /* ---- Extract compressed body ---- */
+  const compData = bytes.slice(12);
+
+  document.getElementById('dec-prog-label').textContent = 'Decompressing…';
+  setProgress('dec-prog-fill', 40);
+  await tick();
+
+  let rgbaBytes;
+  try {
+    rgbaBytes = await inflate(compData);
+  } catch (err) {
+    hideProgress('dec-prog-wrap');
+    toast('Decompression failed: ' + err.message);
+    setDecPill('err', 'Error');
+    return;
+  }
+
+  setProgress('dec-prog-fill', 85);
+  document.getElementById('dec-prog-label').textContent = 'Rendering…';
+  await tick();
+
+  /* ---- Reconstruct to canvas ---- */
+  const decCanvas = document.getElementById('dec-canvas');
+  decCanvas.width  = w;
+  decCanvas.height = h;
+  const decCtx = decCanvas.getContext('2d');
+  const imgData = decCtx.createImageData(w, h);
+  imgData.data.set(rgbaBytes.slice(0, w * h * 4)); // guard against any length mismatch
+  decCtx.putImageData(imgData, 0, 0);
+
+  setProgress('dec-prog-fill', 100);
+  await tick();
+  hideProgress('dec-prog-wrap');
+
+  /* show canvas */
+  document.getElementById('dec-placeholder').style.display = 'none';
+  decCanvas.style.display = 'block';
+
+  /* stats */
+  document.getElementById('dec-stats').style.display = '';
+  document.getElementById('d-file').textContent   = file.name;
+  document.getElementById('d-fsize').textContent  = fmtBytes(file.size);
+  document.getElementById('d-res').textContent    = `${w} × ${h}`;
+  document.getElementById('d-decomp').textContent = fmtBytes(rgbaBytes.byteLength);
+
+  setDecPill('done', 'OK');
+  document.getElementById('btn-dl-png').disabled = false;
+  toast('Image reconstructed — pixel-perfect');
+}
+
+/* =========================================================
+   DOWNLOAD RECONSTRUCTED PNG
+========================================================= */
+function downloadPng() {
+  const c = document.getElementById('dec-canvas');
+  c.toBlob(blob => {
+    triggerDownload(URL.createObjectURL(blob), `reconstructed_${fmtTimestamp(new Date())}.png`);
+    toast('PNG downloaded');
+  }, 'image/png');
+}
+
+function clearDecomp() {
+  const c = document.getElementById('dec-canvas');
+  c.style.display = 'none';
+  c.width = c.height = 0;
+  document.getElementById('dec-placeholder').style.display = '';
+  document.getElementById('dec-stats').style.display       = 'none';
+  document.getElementById('btn-dl-png').disabled           = true;
+  document.getElementById('dec-pill').style.display        = 'none';
+  document.getElementById('file-in').value                 = '';
+  toast('Cleared');
+}
+
+/* =========================================================
+   COPY FILENAME
+========================================================= */
+function copyCapHash() {
+  if (!lastFilename) return;
+  navigator.clipboard.writeText(lastFilename)
+    .then(() => toast('Filename copied'))
+    .catch(() => toast('Copy failed'));
+}
+
+/* =========================================================
+   PILL HELPERS
+========================================================= */
+function setPill(id, cls, txt) {
+  const el = document.getElementById(id);
+  el.className = 'pill' + (cls ? ' ' + cls : '');
+  el.querySelector('span:last-child').textContent = txt;
+}
+
+function setDecPill(cls, txt) {
+  const el = document.getElementById('dec-pill');
+  el.style.display = '';
+  el.className = 'pill ' + cls;
+  document.getElementById('dec-pill-txt').textContent = txt;
+  el.querySelector('.dot').style.background =
+    cls === 'done' ? 'var(--accent)' :
+    cls === 'err'  ? 'var(--warn)'   : 'var(--text-lo)';
+}
+
+/* =========================================================
+   PROGRESS HELPERS
+========================================================= */
+function showProgress(wrapId, fillId, labelId, msg) {
+  document.getElementById(labelId).textContent = msg;
+  document.getElementById(fillId).style.width  = '0%';
+  document.getElementById(wrapId).classList.add('show');
+}
+function setProgress(fillId, pct) {
+  document.getElementById(fillId).style.width = pct + '%';
+}
+function hideProgress(wrapId) {
+  document.getElementById(wrapId).classList.remove('show');
+}
+
+/* =========================================================
+   UTILITIES
+========================================================= */
+function fmtBytes(b) {
+  if (b < 1024)       return `${b} B`;
+  if (b < 1048576)    return `${(b/1024).toFixed(1)} KB`;
+  return `${(b/1048576).toFixed(2)} MB`;
+}
+
+function fmtTimestamp(d) {
+  const p = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}_` +
+         `${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+}
+
+function triggerDownload(url, name) {
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 15000);
+}
+
+function triggerFlash() {
+  const f = document.getElementById('flash');
+  f.classList.remove('go');
+  void f.offsetWidth;
+  f.classList.add('go');
+}
+
+/* Let the browser paint before heavy work */
+const tick = () => new Promise(r => requestAnimationFrame(r));
+
+/* =========================================================
+   KEYBOARD
+========================================================= */
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space' && stream &&
+      document.getElementById('panel-camera').classList.contains('active')) {
+    e.preventDefault();
+    captureAndCompress();
+  }
+});
+
+/* =========================================================
+   CLEANUP
+========================================================= */
+window.addEventListener('beforeunload', () => {
+  if (stream) stream.getTracks().forEach(t => t.stop());
+});
+</script>
+</body>
+</html>
