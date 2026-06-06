@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PXLZ — Compressed Image Tool</title>
+  <title>Frame</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Unbounded:wght@400;600;700;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Unbounded:wght@400;600;700;900&display=swap" rel="stylesheet" />
   <style>
     :root {
       --bg:#060608; --surf:#0e0e12; --surf2:#16161c;
       --border:#1e1e28; --border-hi:#2e2e3e;
-      --accent:#00f0c8; --accent2:#7c4dff; --accent-dim:#00bfa0;
+      --accent:#00f0c8; --accent2:#7c4dff;
       --warn:#ff5252; --ok:#00e676;
       --text-hi:#eeeef5; --text-mid:#7878a0; --text-lo:#3a3a55;
       --mono:'IBM Plex Mono',monospace; --display:'Unbounded',sans-serif;
@@ -28,10 +28,9 @@
 
     /* HEADER */
     header{display:flex;align-items:center;justify-content:space-between;padding:26px 0 20px;border-bottom:1px solid var(--border);margin-bottom:32px;flex-wrap:wrap;gap:12px;}
-    .logo{font-family:var(--display);font-size:20px;font-weight:900;letter-spacing:-0.02em;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .logo{font-family:var(--display);font-size:22px;font-weight:900;letter-spacing:-0.03em;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
     .header-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
     .chip{font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-mid);border:1px solid var(--border-hi);padding:4px 10px;border-radius:100px;}
-    .chip.hi{border-color:var(--accent);color:var(--accent);}
 
     /* TABS */
     .tabs{display:flex;gap:3px;background:var(--surf);border:1px solid var(--border);border-radius:var(--r-lg);padding:4px;width:fit-content;margin-bottom:28px;}
@@ -62,6 +61,21 @@
     .pill.done .dot{background:var(--accent);}
     @keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
 
+    /* CAMERA SELECT */
+    .cam-select-wrap{margin-bottom:12px;}
+    .cam-select-label{font-size:10px;color:var(--text-mid);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;display:block;}
+    .cam-select{
+      width:100%;background:var(--surf2);border:1px solid var(--border-hi);
+      color:var(--text-hi);font-family:var(--mono);font-size:12px;
+      padding:9px 12px;border-radius:var(--r);cursor:pointer;
+      appearance:none;-webkit-appearance:none;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237878a0' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat:no-repeat;background-position:right 12px center;
+      padding-right:32px;
+    }
+    .cam-select:focus{outline:none;border-color:var(--accent);}
+    .cam-select option{background:var(--surf2);}
+
     /* VIDEO */
     .video-wrap{position:relative;width:100%;aspect-ratio:4/3;background:#000;border-radius:var(--r);overflow:hidden;}
     #cam-video{width:100%;height:100%;object-fit:cover;display:block;}
@@ -85,30 +99,13 @@
 
     /* MODE SELECTOR */
     .mode-selector{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;}
-    .mode-card{
-      position:relative;
-      border:1px solid var(--border-hi);
-      border-radius:var(--r);
-      padding:12px;
-      cursor:pointer;
-      transition:border-color 200ms,background 200ms;
-      user-select:none;
-    }
+    .mode-card{position:relative;border:1px solid var(--border-hi);border-radius:var(--r);padding:12px;cursor:pointer;transition:border-color 200ms,background 200ms;user-select:none;}
     .mode-card input[type=radio]{position:absolute;opacity:0;width:0;height:0;}
-    .mode-card:has(input:checked){
-      border-color:var(--accent);
-      background:rgba(0,240,200,0.06);
-    }
+    .mode-card:has(input:checked){border-color:var(--accent);background:rgba(0,240,200,0.06);}
     .mode-card .mode-icon{font-size:18px;margin-bottom:6px;}
     .mode-card .mode-name{font-family:var(--display);font-size:11px;font-weight:700;color:var(--text-hi);margin-bottom:2px;}
     .mode-card .mode-ext{font-family:var(--mono);font-size:10px;color:var(--accent);margin-bottom:4px;}
     .mode-card .mode-desc{font-size:10px;color:var(--text-mid);line-height:1.5;}
-    .mode-card .mode-badge{
-      display:inline-block;font-size:9px;letter-spacing:.06em;text-transform:uppercase;
-      padding:2px 7px;border-radius:100px;margin-top:5px;
-      background:rgba(124,77,255,.15);border:1px solid rgba(124,77,255,.3);color:var(--accent2);
-    }
-    .mode-card:has(input:checked) .mode-badge{background:rgba(0,240,200,.12);border-color:rgba(0,240,200,.35);color:var(--accent);}
 
     /* STATS */
     .stats{width:100%;border-collapse:collapse;margin-top:10px;}
@@ -175,12 +172,9 @@
     .img-wrap img,.img-wrap canvas{max-width:100%;max-height:380px;display:block;}
     .img-empty{color:var(--text-lo);font-size:11px;text-align:center;padding:20px;}
 
-    /* LEGEND */
-    .legend{background:var(--surf2);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-top:16px;}
-    .legend-title{font-family:var(--display);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}
-    .legend-row{display:flex;align-items:baseline;gap:10px;font-size:11px;color:var(--text-mid);padding:4px 0;}
-    .legend-row+.legend-row{border-top:1px solid var(--border);}
-    .legend-key{color:var(--text-hi);font-weight:500;min-width:80px;}
+    /* FOLDER NOTE */
+    .folder-note{font-size:10px;color:var(--text-lo);margin-top:10px;letter-spacing:.04em;line-height:1.6;}
+    .folder-note span{color:var(--text-mid);}
 
     /* TOAST */
     #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--surf2);border:1px solid var(--border-hi);color:var(--text-hi);font-family:var(--mono);font-size:11px;letter-spacing:.05em;padding:9px 18px;border-radius:100px;z-index:99999;opacity:0;pointer-events:none;white-space:nowrap;transition:transform 280ms cubic-bezier(.34,1.56,.64,1),opacity 280ms;}
@@ -200,11 +194,10 @@
 
 <div class="wrap">
   <header>
-    <div class="logo">PXLZ</div>
+    <div class="logo">Frame</div>
     <div class="header-right">
-      <span class="chip hi">Lossless</span>
-      <span class="chip">Delta+DEFLATE &amp; PNG</span>
-      <span class="chip">No server</span>
+      <span class="chip">Lossless</span>
+      <span class="chip">Client-side only</span>
     </div>
   </header>
 
@@ -219,11 +212,11 @@
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/>
         <line x1="10" y1="12" x2="14" y2="12"/>
-      </svg>Decompress
+      </svg>Open
     </button>
   </div>
 
-  <!-- ═══════════════════════════════ CAPTURE PANEL ══════════════════════════════ -->
+  <!-- ═══════════════ CAPTURE PANEL ═══════════════ -->
   <div id="panel-camera" class="panel active">
     <div class="grid-2">
 
@@ -234,6 +227,15 @@
           <div class="pill" id="cam-pill"><span class="dot"></span><span id="cam-pill-txt">Idle</span></div>
         </div>
         <div class="card-body">
+
+          <!-- Camera selector -->
+          <div class="cam-select-wrap">
+            <span class="cam-select-label">Camera source</span>
+            <select class="cam-select" id="cam-select" onchange="switchCamera()" disabled>
+              <option value="">— start camera to list devices —</option>
+            </select>
+          </div>
+
           <div class="video-wrap">
             <video id="cam-video" autoplay playsinline muted></video>
             <canvas id="cap-canvas"></canvas>
@@ -247,6 +249,7 @@
               <p id="vid-overlay-msg">Camera not started</p>
             </div>
           </div>
+
           <button class="btn btn-primary btn-capture" id="btn-start" onclick="startCamera()">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/>
@@ -260,28 +263,25 @@
         </div>
       </div>
 
-      <!-- Compress & Save -->
+      <!-- Save options -->
       <div class="card">
-        <div class="card-head"><span class="card-label">Compress &amp; Save</span></div>
+        <div class="card-head"><span class="card-label">Save Options</span></div>
         <div class="card-body">
 
-          <!-- MODE SELECTOR -->
           <div class="mode-selector">
             <label class="mode-card">
               <input type="radio" name="mode" value="pxlz" checked />
               <div class="mode-icon">📦</div>
-              <div class="mode-name">PXLZ</div>
+              <div class="mode-name">Compact</div>
               <div class="mode-ext">.pxlz</div>
-              <div class="mode-desc">PNG-style delta filter + DEFLATE-raw. Custom binary, self-contained header.</div>
-              <span class="mode-badge">Best custom</span>
+              <div class="mode-desc">Custom binary format. Smallest file size. Open only with Frame.</div>
             </label>
             <label class="mode-card">
               <input type="radio" name="mode" value="png" />
               <div class="mode-icon">🖼️</div>
-              <div class="mode-name">PNG</div>
+              <div class="mode-name">Standard</div>
               <div class="mode-ext">.png</div>
-              <div class="mode-desc">Browser-native PNG encoder. Optimised C++ pipeline, universal support.</div>
-              <span class="mode-badge">Best compat</span>
+              <div class="mode-desc">Universal image format. Compatible with all apps and viewers.</div>
             </label>
           </div>
 
@@ -293,39 +293,35 @@
           <button class="btn btn-primary btn-capture" id="btn-cap" onclick="captureAndCompress()" disabled>
             <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
               <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/>
-            </svg>Capture &amp; Compress
+            </svg>Capture &amp; Save
           </button>
 
-          <!-- Progress -->
           <div class="progress-wrap" id="prog-wrap">
             <p class="progress-label" id="prog-label">Working…</p>
             <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
           </div>
 
-          <!-- Stats -->
           <table class="stats" id="cap-stats" style="display:none">
-            <tr><td>Mode</td>       <td id="s-mode">—</td></tr>
-            <tr><td>Resolution</td> <td id="s-res">—</td></tr>
-            <tr><td>Raw RGBA</td>   <td id="s-raw">—</td></tr>
-            <tr><td>Saved file</td> <td id="s-comp">—</td></tr>
-            <tr><td>Reduction</td>  <td id="s-ratio">—</td></tr>
+            <tr><td>Resolution</td><td id="s-res">—</td></tr>
+            <tr><td>Original</td>  <td id="s-raw">—</td></tr>
+            <tr><td>Saved as</td>  <td id="s-comp">—</td></tr>
+            <tr><td>Reduction</td> <td id="s-ratio">—</td></tr>
           </table>
 
-          <!-- Comparison bars -->
           <div class="compare-wrap" id="compare-wrap">
             <p class="compare-title">Size comparison</p>
             <div class="compare-row">
-              <span class="compare-row-label">Raw RGBA</span>
+              <span class="compare-row-label">Original</span>
               <div class="compare-track"><div class="compare-fill fill-raw" id="bar-raw" style="width:100%"></div></div>
               <span class="compare-val" id="bar-raw-val">—</span>
             </div>
             <div class="compare-row" id="bar-pxlz-row">
-              <span class="compare-row-label">PXLZ (delta)</span>
+              <span class="compare-row-label">Compact</span>
               <div class="compare-track"><div class="compare-fill fill-pxlz" id="bar-pxlz" style="width:0%"></div></div>
               <span class="compare-val" id="bar-pxlz-val">—</span>
             </div>
-            <div class="compare-row" id="bar-png-row">
-              <span class="compare-row-label">PNG</span>
+            <div class="compare-row" id="bar-png-row" style="display:none">
+              <span class="compare-row-label">Standard</span>
               <div class="compare-track"><div class="compare-fill fill-png" id="bar-png" style="width:0%"></div></div>
               <span class="compare-val" id="bar-png-val">—</span>
             </div>
@@ -338,27 +334,19 @@
             <span id="ratio-txt"></span>
           </div>
 
-          <!-- Legend (only for pxlz mode) -->
-          <div class="legend" id="pxlz-legend">
-            <p class="legend-title">📦 .pxlz format</p>
-            <div class="legend-row"><span class="legend-key">Bytes 0–3</span>Magic <code>PXLZ</code></div>
-            <div class="legend-row"><span class="legend-key">Bytes 4–7</span>Width (uint32 BE)</div>
-            <div class="legend-row"><span class="legend-key">Bytes 8–11</span>Height (uint32 BE)</div>
-            <div class="legend-row"><span class="legend-key">Bytes 12–15</span>Filter type (uint32 BE, 1=Sub)</div>
-            <div class="legend-row"><span class="legend-key">Bytes 16+</span>DEFLATE-raw of delta-filtered RGBA rows</div>
-          </div>
+          <p class="folder-note" id="folder-note">Files save to: <span id="folder-display">detecting device…</span></p>
 
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ═══════════════════════════════ DECOMPRESS PANEL ══════════════════════════════ -->
+  <!-- ═══════════════ OPEN PANEL ═══════════════ -->
   <div id="panel-decomp" class="panel">
     <div class="grid-2">
 
       <div class="card">
-        <div class="card-head"><span class="card-label">Input — .pxlz or .png</span></div>
+        <div class="card-head"><span class="card-label">Open File</span></div>
         <div class="card-body">
           <div class="drop" id="drop-zone"
                ondragover="dzOver(event)" ondragleave="dzLeave()" ondrop="dzDrop(event)">
@@ -368,27 +356,26 @@
               <polyline points="17 8 12 3 7 8"/>
               <line x1="12" y1="3" x2="12" y2="15"/>
             </svg>
-            <p class="dt">Drop .pxlz or .png here</p>
-            <p class="ds">or tap to browse</p>
+            <p class="dt">Drop file here</p>
+            <p class="ds">.pxlz or .png · tap to browse</p>
           </div>
 
           <div class="progress-wrap" id="dec-prog-wrap">
-            <p class="progress-label" id="dec-prog-label">Decompressing…</p>
+            <p class="progress-label" id="dec-prog-label">Opening…</p>
             <div class="progress-track"><div class="progress-fill" id="dec-prog-fill"></div></div>
           </div>
 
           <table class="stats" id="dec-stats" style="display:none;margin-top:14px">
-            <tr><td>File</td>         <td id="d-file">—</td></tr>
-            <tr><td>Format</td>       <td id="d-fmt">—</td></tr>
-            <tr><td>File size</td>    <td id="d-fsize">—</td></tr>
-            <tr><td>Resolution</td>   <td id="d-res">—</td></tr>
+            <tr><td>File</td>      <td id="d-file">—</td></tr>
+            <tr><td>File size</td> <td id="d-fsize">—</td></tr>
+            <tr><td>Resolution</td><td id="d-res">—</td></tr>
           </table>
         </div>
       </div>
 
       <div class="card">
         <div class="card-head">
-          <span class="card-label">Reconstructed Image</span>
+          <span class="card-label">Image</span>
           <div class="pill" id="dec-pill" style="display:none">
             <span class="dot"></span><span id="dec-pill-txt">—</span>
           </div>
@@ -404,32 +391,78 @@
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                 <polyline points="7 10 12 15 17 10"/>
                 <line x1="12" y1="15" x2="12" y2="3"/>
-              </svg>Download PNG
+              </svg>Download
             </button>
             <button class="btn btn-ghost" onclick="clearDecomp()">Clear</button>
           </div>
+          <p class="folder-note">Downloads save to: <span>Frame/</span> inside your Downloads folder</p>
         </div>
       </div>
 
     </div>
   </div>
 
-  <footer>PXLZ · delta+DEFLATE &amp; PNG · 100% client-side · pixels never leave your device</footer>
+  <footer>Frame · lossless · 100% client-side · your images never leave this device</footer>
 </div>
 
+
 <script>
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
    STATE
-═══════════════════════════════════════════════════════════ */
-var stream = null;
+═══════════════════════════════════════════════════════ */
+var stream      = null;
+var deviceLabel = '';   /* folder name for .pxlz saves */
 
 var video  = document.getElementById('cam-video');
 var canvas = document.getElementById('cap-canvas');
 var ctx    = canvas.getContext('2d');
 
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
+   INIT — detect device/browser name for folder
+═══════════════════════════════════════════════════════ */
+(function detectDevice() {
+  var ua  = navigator.userAgent;
+  var name = '';
+
+  /* Try to extract a device model name from UA */
+  var m;
+
+  /* Android device model  e.g. "SM-G991B", "Pixel 6", "Redmi Note 10" */
+  m = ua.match(/\(Linux;[^)]*Android[^;]*;\s*([^)]+)\)/i);
+  if (m) {
+    /* Strip "Build/..." suffix */
+    name = m[1].replace(/\s*Build\/.*/i,'').trim();
+  }
+
+  /* iPhone / iPad */
+  if (!name && /iPhone/.test(ua)) name = 'iPhone';
+  if (!name && /iPad/.test(ua))   name = 'iPad';
+
+  /* macOS Mac model not in UA — use OS name */
+  if (!name && /Macintosh|Mac OS X/i.test(ua)) name = 'Mac';
+
+  /* Windows */
+  if (!name && /Windows NT/i.test(ua)) name = 'Windows-PC';
+
+  /* Fallback: browser name */
+  if (!name) {
+    if (/Edg\//i.test(ua))     name = 'Edge';
+    else if (/OPR\//i.test(ua))name = 'Opera';
+    else if (/Firefox\//i.test(ua)) name = 'Firefox';
+    else if (/Chrome\//i.test(ua))  name = 'Chrome';
+    else if (/Safari\//i.test(ua))  name = 'Safari';
+    else name = 'Frame-Device';
+  }
+
+  /* Sanitise: keep only safe filename chars */
+  deviceLabel = name.replace(/[^a-zA-Z0-9_\-. ]/g,'_').trim().replace(/\s+/g,'-');
+
+  document.getElementById('folder-display').textContent = deviceLabel + '/';
+})();
+
+/* ═══════════════════════════════════════════════════════
    TABS
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════ */
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach(function(b){
     b.classList.toggle('active', b.dataset.tab === name);
@@ -439,9 +472,9 @@ function switchTab(name) {
   });
 }
 
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
    TOAST
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════ */
 var _tt;
 function toast(msg, ms) {
   ms = ms || 2600;
@@ -452,35 +485,82 @@ function toast(msg, ms) {
   _tt = setTimeout(function(){ el.classList.remove('show'); }, ms);
 }
 
-/* ═══════════════════════════════════════════════════════════
-   CAMERA
-═══════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   CAMERA — enumerate devices and populate selector
+═══════════════════════════════════════════════════════ */
+async function populateCameraList(activeDeviceId) {
+  var sel = document.getElementById('cam-select');
+  try {
+    var devices = await navigator.mediaDevices.enumerateDevices();
+    var cameras = devices.filter(function(d){ return d.kind === 'videoinput'; });
+    sel.innerHTML = '';
+    cameras.forEach(function(cam, i){
+      var opt = document.createElement('option');
+      opt.value = cam.deviceId;
+      /* Label: use device label if available, else generic */
+      opt.textContent = cam.label || ('Camera ' + (i + 1));
+      if (cam.deviceId === activeDeviceId) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    sel.disabled = cameras.length <= 1;
+  } catch(e) {
+    console.warn('Could not enumerate cameras:', e);
+  }
+}
+
 async function startCamera() {
   var overlay    = document.getElementById('vid-overlay');
   var overlayMsg = document.getElementById('vid-overlay-msg');
   overlayMsg.textContent = 'Requesting camera…';
   overlay.classList.remove('hidden','err');
+
+  /* Use selected deviceId if already populated, else default */
+  var sel      = document.getElementById('cam-select');
+  var deviceId = sel.value && sel.value !== '' ? sel.value : undefined;
+
+  var constraints = {
+    video: deviceId
+      ? { deviceId: { exact: deviceId }, width:{ideal:1920}, height:{ideal:1080} }
+      : { facingMode:'environment',      width:{ideal:1920}, height:{ideal:1080} },
+    audio: false
+  };
+
   try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      video:{ facingMode:'environment', width:{ideal:1920}, height:{ideal:1080} },
-      audio:false
-    });
+    if (stream) stream.getTracks().forEach(function(t){ t.stop(); });
+    stream = await navigator.mediaDevices.getUserMedia(constraints);
     video.srcObject = stream;
     await new Promise(function(res){
       video.onloadedmetadata = function(){ video.play(); res(); };
     });
+
+    /* Grab active deviceId from the track */
+    var track    = stream.getVideoTracks()[0];
+    var settings = track.getSettings ? track.getSettings() : {};
+    var activeId = settings.deviceId || '';
+
+    /* Populate / refresh camera list after permission granted */
+    await populateCameraList(activeId);
+    document.getElementById('cam-select').disabled = false;
+
     overlay.classList.add('hidden');
     document.getElementById('brackets').classList.add('show');
     setPill('cam-pill','live','Live');
     document.getElementById('btn-start').style.display = 'none';
     document.getElementById('btn-stop').style.display  = '';
     document.getElementById('btn-cap').disabled        = false;
+
   } catch(err) {
     overlay.classList.remove('hidden');
     overlay.classList.add('err');
     overlayMsg.textContent = camErrMsg(err);
     setPill('cam-pill','err','Denied');
   }
+}
+
+async function switchCamera() {
+  /* Called when user picks a different camera from the dropdown */
+  if (!stream) return;          /* camera not started yet */
+  await startCamera();          /* restarts with the newly selected deviceId */
 }
 
 function stopCamera() {
@@ -493,6 +573,7 @@ function stopCamera() {
   document.getElementById('btn-start').style.display = '';
   document.getElementById('btn-stop').style.display  = 'none';
   document.getElementById('btn-cap').disabled        = true;
+  document.getElementById('cam-select').disabled     = true;
 }
 
 function camErrMsg(e) {
@@ -502,17 +583,30 @@ function camErrMsg(e) {
   return 'Error: ' + e.message;
 }
 
+/* ═══════════════════════════════════════════════════════
+   FILENAME GENERATION
+   .pxlz files use an opaque name: a hex-encoded timestamp
+   so the filename reveals nothing about the content.
 
-/* ═══════════════════════════════════════════════════════════
-   CAPTURE & COMPRESS — dispatcher
-═══════════════════════════════════════════════════════════ */
+   Format:  <hex-timestamp><random-hex>.pxlz
+   Example: 018f3a2b4c8e1d3f7a92.pxlz
+═══════════════════════════════════════════════════════ */
+function opaqueName() {
+  /* Unix ms timestamp → hex (13 hex chars) */
+  var tsHex = Date.now().toString(16).padStart(13,'0');
+  /* 7 random hex chars for extra entropy */
+  var randHex = Math.floor(Math.random() * 0xFFFFFFF).toString(16).padStart(7,'0');
+  return tsHex + randHex + '.pxlz';
+}
+
+/* ═══════════════════════════════════════════════════════
+   CAPTURE — dispatcher
+═══════════════════════════════════════════════════════ */
 async function captureAndCompress() {
   if (!stream) return;
-
   var mode = document.querySelector('input[name="mode"]:checked').value;
   var half = document.getElementById('tog-half').checked;
 
-  /* Draw frame */
   var w = video.videoWidth;
   var h = video.videoHeight;
   if (half){ w = Math.floor(w/2); h = Math.floor(h/2); }
@@ -520,171 +614,129 @@ async function captureAndCompress() {
   ctx.drawImage(video, 0, 0, w, h);
   triggerFlash();
 
-  if (mode === 'pxlz') {
-    await compressToPxlz(w, h);
-  } else {
-    await compressToPng(w, h);
-  }
+  if (mode === 'pxlz') await saveAsPxlz(w, h);
+  else                 await saveAsPng(w, h);
 }
 
-/* ═══════════════════════════════════════════════════════════
-   MODE A — PXLZ  (PNG-style Sub delta filter + DEFLATE-raw)
+/* ═══════════════════════════════════════════════════════
+   MODE A — PXLZ  (Sub delta filter + DEFLATE-raw)
 
-   Delta filter (Sub):
-     For each row, for each channel byte:
-       filtered[x] = raw[x] - raw[x-4]   (x-4 = previous pixel, same channel)
-       filtered[x] = raw[x]               (x < 4, i.e. first pixel in row)
-   This makes smooth gradients collapse to near-zero diffs → high compression.
+   Per-row Sub filter:
+     filtered[i] = raw[i]                          if i < 4  (first pixel)
+     filtered[i] = (raw[i] - raw[i-4] + 256) & FF  otherwise
 
-   .pxlz binary layout:
-     [0..3]   "PXLZ" magic
+   File header (16 bytes):
+     [0..3]   "PXLZ"
      [4..7]   width  uint32 BE
      [8..11]  height uint32 BE
      [12..15] filter uint32 BE  (1 = Sub)
-     [16+]    DEFLATE-raw of delta-filtered rows (no row-filter byte, pure data)
-═══════════════════════════════════════════════════════════ */
-async function compressToPxlz(w, h) {
-  var imgData  = ctx.getImageData(0, 0, w, h);
-  var raw      = imgData.data;        /* Uint8ClampedArray, length = w*h*4 */
-  var rawSize  = raw.byteLength;
+     [16+]    DEFLATE-raw compressed filtered RGBA
+═══════════════════════════════════════════════════════ */
+async function saveAsPxlz(w, h) {
+  var imgData = ctx.getImageData(0, 0, w, h);
+  var raw     = imgData.data;
+  var rawSize = raw.byteLength;
 
-  showProg('prog-wrap','prog-fill','prog-label','Applying delta filter…');
+  showProg('prog-wrap','prog-fill','prog-label','Processing…');
   await tick();
 
-  /* ── Delta (Sub) filter ── */
+  /* Sub filter */
   var filtered = new Uint8Array(rawSize);
-  var stride   = w * 4;              /* bytes per row */
-
+  var stride   = w * 4;
   for (var row = 0; row < h; row++) {
     var base = row * stride;
     for (var i = 0; i < stride; i++) {
       var abs = base + i;
-      if (i < 4) {
-        /* First pixel in row: no previous pixel, copy as-is */
-        filtered[abs] = raw[abs];
-      } else {
-        /* Sub filter: store difference from pixel to the left (same channel) */
-        filtered[abs] = (raw[abs] - raw[abs - 4] + 256) & 0xFF;
-      }
+      filtered[abs] = i < 4 ? raw[abs] : (raw[abs] - raw[abs-4] + 256) & 0xFF;
     }
   }
 
-  setFill('prog-fill', 40);
-  document.getElementById('prog-label').textContent = 'DEFLATE compressing…';
+  setFill('prog-fill', 50);
   await tick();
 
-  /* ── DEFLATE-raw ── */
   var compBytes;
   try { compBytes = await deflateRaw(filtered); }
-  catch(e){ hideProg('prog-wrap'); toast('Compression error: ' + e.message); return; }
+  catch(e){ hideProg('prog-wrap'); toast('Error: ' + e.message); return; }
 
-  setFill('prog-fill', 90);
-  document.getElementById('prog-label').textContent = 'Writing .pxlz…';
-  await tick();
+  setFill('prog-fill', 90); await tick();
 
-  /* ── Build header ──
-     Bytes 0-3:  PXLZ
-     Bytes 4-7:  width  (uint32 BE)
-     Bytes 8-11: height (uint32 BE)
-     Bytes 12-15: filter type = 1 (Sub)
-  */
   var header = new ArrayBuffer(16);
   var dv     = new DataView(header);
-  dv.setUint8(0,0x50); dv.setUint8(1,0x58); dv.setUint8(2,0x4C); dv.setUint8(3,0x5A);
-  dv.setUint32(4,  w, false);
-  dv.setUint32(8,  h, false);
-  dv.setUint32(12, 1, false); /* filter = Sub */
+  dv.setUint8(0,0x50);dv.setUint8(1,0x58);dv.setUint8(2,0x4C);dv.setUint8(3,0x5A);
+  dv.setUint32(4, w, false);
+  dv.setUint32(8, h, false);
+  dv.setUint32(12,1, false);
 
   var blob     = new Blob([header, compBytes], {type:'application/octet-stream'});
   var compSize = blob.size;
 
   setFill('prog-fill',100); await tick(); hideProg('prog-wrap');
 
-  /* ── Show stats & comparison ── */
-  showStats('PXLZ (delta+DEFLATE)', w, h, rawSize, compSize);
+  showStats(w, h, rawSize, compSize);
   showComparison(rawSize, compSize, null);
 
-  var ts = fmtTs(new Date());
-  var fname = 'capture_' + ts + '.pxlz';
+  /* Opaque filename saved inside deviceLabel folder */
+  var fname = deviceLabel + '/' + opaqueName();
   triggerDownload(URL.createObjectURL(blob), fname);
-  toast('Saved ' + fname);
+  toast('Saved');
 }
 
-/* ═══════════════════════════════════════════════════════════
-   MODE B — PNG  (browser-native canvas.toBlob)
-   The browser internally applies PNG filters (Paeth/Sub/Up/Average)
-   + zlib DEFLATE on each row. This is compiled C++, very fast,
-   and typically achieves the best possible lossless ratio.
-═══════════════════════════════════════════════════════════ */
-async function compressToPng(w, h) {
-  /* We need raw size for comparison */
+/* ═══════════════════════════════════════════════════════
+   MODE B — PNG (browser-native)
+═══════════════════════════════════════════════════════ */
+async function saveAsPng(w, h) {
   var rawSize = w * h * 4;
-
-  showProg('prog-wrap','prog-fill','prog-label','Encoding PNG…');
-  setFill('prog-fill', 30);
-  await tick();
+  showProg('prog-wrap','prog-fill','prog-label','Encoding…');
+  setFill('prog-fill',30); await tick();
 
   var blob = await new Promise(function(res){
-    canvas.toBlob(function(b){ res(b); }, 'image/png');
+    canvas.toBlob(function(b){ res(b); },'image/png');
   });
 
   setFill('prog-fill',100); await tick(); hideProg('prog-wrap');
 
-  showStats('PNG (browser-native)', w, h, rawSize, blob.size);
+  showStats(w, h, rawSize, blob.size);
   showComparison(rawSize, null, blob.size);
 
+  /* PNG saved with a timestamp-based name in device folder */
   var ts    = fmtTs(new Date());
-  var fname = 'capture_' + ts + '.png';
+  var fname = deviceLabel + '/frame_' + ts + '.png';
   triggerDownload(URL.createObjectURL(blob), fname);
-  toast('Saved ' + fname);
+  toast('Saved');
 }
 
-/* ─── shared stat renderer ─── */
-function showStats(modeName, w, h, rawSize, compSize) {
+/* ─── stat helpers ─── */
+function showStats(w, h, rawSize, compSize) {
   var ratio = ((1 - compSize / rawSize) * 100).toFixed(1);
   document.getElementById('cap-stats').style.display = '';
-  document.getElementById('s-mode').textContent  = modeName;
   document.getElementById('s-res').textContent   = w + ' × ' + h;
   document.getElementById('s-raw').textContent   = fmtBytes(rawSize);
   document.getElementById('s-comp').textContent  = fmtBytes(compSize);
   document.getElementById('s-ratio').textContent = ratio + '% smaller';
-  var badge = document.getElementById('ratio-badge');
-  badge.style.display = '';
+  document.getElementById('ratio-badge').style.display = '';
   document.getElementById('ratio-txt').textContent =
     ratio + '% saved · ' + fmtBytes(rawSize) + ' → ' + fmtBytes(compSize);
 }
 
-/* ─── comparison bars ───
-   pxlzSize or pngSize may be null if mode wasn't run
-─── */
 function showComparison(rawSize, pxlzSize, pngSize) {
-  var wrap = document.getElementById('compare-wrap');
-  wrap.classList.add('show');
-
+  document.getElementById('compare-wrap').classList.add('show');
   document.getElementById('bar-raw-val').textContent = fmtBytes(rawSize);
-
-  var pxlzRow = document.getElementById('bar-pxlz-row');
-  var pngRow  = document.getElementById('bar-png-row');
-
   if (pxlzSize !== null) {
-    pxlzRow.style.display = '';
-    var pct = (pxlzSize / rawSize * 100).toFixed(1);
-    document.getElementById('bar-pxlz').style.width  = pct + '%';
-    document.getElementById('bar-pxlz-val').textContent = fmtBytes(pxlzSize);
-    pngRow.style.display = 'none';
+    document.getElementById('bar-pxlz-row').style.display = '';
+    document.getElementById('bar-png-row').style.display  = 'none';
+    document.getElementById('bar-pxlz').style.width       = (pxlzSize/rawSize*100).toFixed(1) + '%';
+    document.getElementById('bar-pxlz-val').textContent   = fmtBytes(pxlzSize);
   } else {
-    pngRow.style.display = '';
-    var pct2 = (pngSize / rawSize * 100).toFixed(1);
-    document.getElementById('bar-png').style.width  = pct2 + '%';
-    document.getElementById('bar-png-val').textContent = fmtBytes(pngSize);
-    pxlzRow.style.display = 'none';
+    document.getElementById('bar-png-row').style.display  = '';
+    document.getElementById('bar-pxlz-row').style.display = 'none';
+    document.getElementById('bar-png').style.width        = (pngSize/rawSize*100).toFixed(1) + '%';
+    document.getElementById('bar-png-val').textContent    = fmtBytes(pngSize);
   }
 }
 
-/* ═══════════════════════════════════════════════════════════
-   DEFLATE / INFLATE  (browser-native CompressionStream)
-   Chrome 80+ / Firefox 113+ / Safari 16.4+ / Edge 80+
-═══════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   DEFLATE / INFLATE (browser-native CompressionStream)
+═══════════════════════════════════════════════════════ */
 async function deflateRaw(data) {
   if (typeof CompressionStream === 'undefined')
     throw new Error('CompressionStream not supported in this browser.');
@@ -700,251 +752,203 @@ async function inflateRaw(data) {
     throw new Error('DecompressionStream not supported in this browser.');
   var ds = new DecompressionStream('deflate-raw');
   var w  = ds.writable.getWriter();
-  w.write(data);
-  w.close();
+  w.write(data); w.close();
   return collectStream(ds.readable);
 }
 
 async function collectStream(readable) {
-  var chunks = [];
-  var reader = readable.getReader();
+  var chunks = [], reader = readable.getReader();
   while (true) {
-    var res = await reader.read();
-    if (res.done) break;
-    chunks.push(res.value);
+    var r = await reader.read();
+    if (r.done) break;
+    chunks.push(r.value);
   }
-  var total  = chunks.reduce(function(a,c){ return a + c.byteLength; }, 0);
-  var result = new Uint8Array(total);
-  var off    = 0;
-  for (var i = 0; i < chunks.length; i++){ result.set(chunks[i], off); off += chunks[i].byteLength; }
-  return result;
+  var total = chunks.reduce(function(a,c){ return a+c.byteLength; },0);
+  var out   = new Uint8Array(total), off = 0;
+  chunks.forEach(function(c){ out.set(c,off); off+=c.byteLength; });
+  return out;
 }
 
-/* ═══════════════════════════════════════════════════════════
-   DECOMPRESS PANEL
-   Accepts both .pxlz (custom) and .png (native image)
-═══════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   OPEN / DECOMPRESS PANEL
+═══════════════════════════════════════════════════════ */
 function dzOver(e)  { e.preventDefault(); document.getElementById('drop-zone').classList.add('over'); }
 function dzLeave()  { document.getElementById('drop-zone').classList.remove('over'); }
-function dzDrop(e)  { e.preventDefault(); dzLeave(); var f = e.dataTransfer.files[0]; if(f) processPxlz(f); }
-function fileChosen(e){ var f = e.target.files[0]; if(f) processPxlz(f); }
+function dzDrop(e)  { e.preventDefault(); dzLeave(); var f=e.dataTransfer.files[0]; if(f) openFile(f); }
+function fileChosen(e){ var f=e.target.files[0]; if(f) openFile(f); }
 
-async function processPxlz(file) {
-  var isPng  = file.name.endsWith('.png') || file.type === 'image/png';
+async function openFile(file) {
+  var isPng  = file.name.endsWith('.png') || file.type==='image/png';
   var isPxlz = file.name.endsWith('.pxlz');
+  if (!isPng && !isPxlz){ toast('Please provide a .pxlz or .png file'); return; }
+  if (isPng) { await openPng(file); return; }
+  await openPxlz(file);
+}
 
-  if (!isPng && !isPxlz) { toast('Please provide a .pxlz or .png file'); return; }
-
-  if (isPng) { await decodePng(file); return; }
-
-  /* ── .pxlz decode ── */
-  showProg('dec-prog-wrap','dec-prog-fill','dec-prog-label','Reading file…');
+async function openPxlz(file) {
+  showProg('dec-prog-wrap','dec-prog-fill','dec-prog-label','Reading…');
   await tick();
 
   var buf;
   try { buf = await file.arrayBuffer(); }
   catch(e){ hideProg('dec-prog-wrap'); toast('Failed to read file'); return; }
 
-  /* Validate magic */
   var bytes = new Uint8Array(buf);
   if (bytes[0]!==0x50||bytes[1]!==0x58||bytes[2]!==0x4C||bytes[3]!==0x5A) {
-    hideProg('dec-prog-wrap');
-    toast('Not a valid .pxlz file');
-    setDecPill('err','Bad file');
-    return;
+    hideProg('dec-prog-wrap'); toast('Not a valid Frame file'); setDecPill('err','Bad file'); return;
   }
 
-  /* Parse header */
-  var dv      = new DataView(buf);
-  var w       = dv.getUint32(4,  false);
-  var h       = dv.getUint32(8,  false);
-  var filter  = dv.getUint32(12, false); /* 1 = Sub */
+  var dv  = new DataView(buf);
+  var w   = dv.getUint32(4, false);
+  var h   = dv.getUint32(8, false);
 
-  setFill('dec-prog-fill', 25);
-  document.getElementById('dec-prog-label').textContent = 'Inflating…';
+  setFill('dec-prog-fill',30);
+  document.getElementById('dec-prog-label').textContent = 'Decompressing…';
   await tick();
 
-  var compData = bytes.slice(16);
   var filtered;
-  try { filtered = await inflateRaw(compData); }
-  catch(e){ hideProg('dec-prog-wrap'); toast('Inflate error: ' + e.message); setDecPill('err','Error'); return; }
+  try { filtered = await inflateRaw(bytes.slice(16)); }
+  catch(e){ hideProg('dec-prog-wrap'); toast('Decompress error: '+e.message); setDecPill('err','Error'); return; }
 
-  setFill('dec-prog-fill', 70);
-  document.getElementById('dec-prog-label').textContent = 'Reversing delta filter…';
+  setFill('dec-prog-fill',70);
+  document.getElementById('dec-prog-label').textContent = 'Reconstructing…';
   await tick();
 
-  /* ── Reverse Sub filter ── */
-  var raw    = new Uint8Array(w * h * 4);
-  var stride = w * 4;
-
-  for (var row = 0; row < h; row++) {
-    var base = row * stride;
-    for (var i = 0; i < stride; i++) {
-      var abs = base + i;
-      if (i < 4) {
-        raw[abs] = filtered[abs];
-      } else {
-        /* Undo: raw[x] = filtered[x] + raw[x-4] */
-        raw[abs] = (filtered[abs] + raw[abs - 4]) & 0xFF;
-      }
+  /* Reverse Sub filter */
+  var raw = new Uint8Array(w*h*4), stride = w*4;
+  for (var row=0; row<h; row++) {
+    var base = row*stride;
+    for (var i=0; i<stride; i++) {
+      var abs = base+i;
+      raw[abs] = i<4 ? filtered[abs] : (filtered[abs]+raw[abs-4])&0xFF;
     }
   }
 
-  setFill('dec-prog-fill', 90);
-  document.getElementById('dec-prog-label').textContent = 'Rendering…';
-  await tick();
-
-  paintToCanvas(raw, w, h);
-  setFill('dec-prog-fill', 100); await tick(); hideProg('dec-prog-wrap');
+  setFill('dec-prog-fill',95); await tick();
+  paintCanvas(raw, w, h);
+  setFill('dec-prog-fill',100); await tick(); hideProg('dec-prog-wrap');
 
   document.getElementById('dec-stats').style.display = '';
   document.getElementById('d-file').textContent   = file.name;
-  document.getElementById('d-fmt').textContent    = 'PXLZ (delta+DEFLATE, filter=' + filter + ')';
   document.getElementById('d-fsize').textContent  = fmtBytes(file.size);
-  document.getElementById('d-res').textContent    = w + ' × ' + h;
-
+  document.getElementById('d-res').textContent    = w+' × '+h;
   setDecPill('done','OK');
   document.getElementById('btn-dl-png').disabled = false;
-  toast('Reconstructed pixel-perfect ✓');
+  toast('Opened ✓');
 }
 
-/* ─── PNG decode: draw to a temp Image element, then copy to canvas ─── */
-async function decodePng(file) {
-  showProg('dec-prog-wrap','dec-prog-fill','dec-prog-label','Decoding PNG…');
-  setFill('dec-prog-fill', 30);
-  await tick();
-
+async function openPng(file) {
+  showProg('dec-prog-wrap','dec-prog-fill','dec-prog-label','Loading…');
+  setFill('dec-prog-fill',30); await tick();
   var url = URL.createObjectURL(file);
   var img = new Image();
-  await new Promise(function(res, rej){
-    img.onload = res; img.onerror = rej; img.src = url;
-  });
+  await new Promise(function(res,rej){ img.onload=res; img.onerror=rej; img.src=url; });
   URL.revokeObjectURL(url);
-
-  var w = img.naturalWidth;
-  var h = img.naturalHeight;
-
-  /* Paint via offscreen canvas to get RGBA */
-  var dc  = document.getElementById('dec-canvas');
-  dc.width = w; dc.height = h;
-  var dctx = dc.getContext('2d');
-  dctx.drawImage(img, 0, 0);
-
-  setFill('dec-prog-fill', 100); await tick(); hideProg('dec-prog-wrap');
-
-  document.getElementById('dec-placeholder').style.display = 'none';
-  dc.style.display = 'block';
-
-  document.getElementById('dec-stats').style.display = '';
-  document.getElementById('d-file').textContent   = file.name;
-  document.getElementById('d-fmt').textContent    = 'PNG (browser-native)';
-  document.getElementById('d-fsize').textContent  = fmtBytes(file.size);
-  document.getElementById('d-res').textContent    = w + ' × ' + h;
-
+  var w=img.naturalWidth, h=img.naturalHeight;
+  var dc=document.getElementById('dec-canvas');
+  dc.width=w; dc.height=h;
+  dc.getContext('2d').drawImage(img,0,0);
+  setFill('dec-prog-fill',100); await tick(); hideProg('dec-prog-wrap');
+  document.getElementById('dec-placeholder').style.display='none';
+  dc.style.display='block';
+  document.getElementById('dec-stats').style.display='';
+  document.getElementById('d-file').textContent  = file.name;
+  document.getElementById('d-fsize').textContent = fmtBytes(file.size);
+  document.getElementById('d-res').textContent   = w+' × '+h;
   setDecPill('done','OK');
-  document.getElementById('btn-dl-png').disabled = false;
-  toast('PNG loaded ✓');
+  document.getElementById('btn-dl-png').disabled=false;
+  toast('Opened ✓');
 }
 
-/* ─── paint Uint8Array RGBA → dec-canvas ─── */
-function paintToCanvas(rgba, w, h) {
-  var dc   = document.getElementById('dec-canvas');
-  dc.width = w; dc.height = h;
-  var dctx = dc.getContext('2d');
-  var imgD = dctx.createImageData(w, h);
-  imgD.data.set(rgba.subarray(0, w * h * 4));
-  dctx.putImageData(imgD, 0, 0);
-  document.getElementById('dec-placeholder').style.display = 'none';
-  dc.style.display = 'block';
+function paintCanvas(rgba, w, h) {
+  var dc=document.getElementById('dec-canvas');
+  dc.width=w; dc.height=h;
+  var imgD=dc.getContext('2d').createImageData(w,h);
+  imgD.data.set(rgba.subarray(0,w*h*4));
+  dc.getContext('2d').putImageData(imgD,0,0);
+  document.getElementById('dec-placeholder').style.display='none';
+  dc.style.display='block';
 }
 
-/* ═══════════════════════════════════════════════════════════
-   DOWNLOAD PNG FROM CANVAS
-═══════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   DOWNLOAD RECONSTRUCTED IMAGE
+   Saves to  Frame/<timestamp>.png
+═══════════════════════════════════════════════════════ */
 function downloadPng() {
   var dc = document.getElementById('dec-canvas');
   dc.toBlob(function(blob){
-    triggerDownload(URL.createObjectURL(blob), 'reconstructed_' + fmtTs(new Date()) + '.png');
-    toast('PNG downloaded');
-  }, 'image/png');
+    var fname = 'Frame/' + fmtTs(new Date()) + '.png';
+    triggerDownload(URL.createObjectURL(blob), fname);
+    toast('Downloaded to Frame/');
+  },'image/png');
 }
 
 function clearDecomp() {
-  var dc = document.getElementById('dec-canvas');
-  dc.style.display = 'none'; dc.width = dc.height = 0;
-  document.getElementById('dec-placeholder').style.display = '';
-  document.getElementById('dec-stats').style.display       = 'none';
-  document.getElementById('btn-dl-png').disabled           = true;
-  document.getElementById('dec-pill').style.display        = 'none';
-  document.getElementById('file-in').value                 = '';
+  var dc=document.getElementById('dec-canvas');
+  dc.style.display='none'; dc.width=dc.height=0;
+  document.getElementById('dec-placeholder').style.display='';
+  document.getElementById('dec-stats').style.display='none';
+  document.getElementById('btn-dl-png').disabled=true;
+  document.getElementById('dec-pill').style.display='none';
+  document.getElementById('file-in').value='';
   toast('Cleared');
 }
 
-/* ═══════════════════════════════════════════════════════════
-   MODE SELECTOR UI
-═══════════════════════════════════════════════════════════ */
-document.querySelectorAll('input[name="mode"]').forEach(function(r){
-  r.addEventListener('change', function(){
-    document.getElementById('pxlz-legend').style.display =
-      (r.value === 'pxlz' && r.checked) ? '' : 'none';
-  });
-});
-
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════
    HELPERS
-═══════════════════════════════════════════════════════════ */
-function setPill(id, cls, txt) {
-  var el = document.getElementById(id);
-  el.className = 'pill' + (cls ? ' ' + cls : '');
-  el.querySelector('span:last-child').textContent = txt;
+═══════════════════════════════════════════════════════ */
+function setPill(id,cls,txt){
+  var el=document.getElementById(id);
+  el.className='pill'+(cls?' '+cls:'');
+  el.querySelector('span:last-child').textContent=txt;
 }
-function setDecPill(cls, txt) {
-  var el = document.getElementById('dec-pill');
-  el.style.display = '';
-  el.className = 'pill ' + cls;
-  document.getElementById('dec-pill-txt').textContent = txt;
-  el.querySelector('.dot').style.background =
+function setDecPill(cls,txt){
+  var el=document.getElementById('dec-pill');
+  el.style.display='';
+  el.className='pill '+cls;
+  document.getElementById('dec-pill-txt').textContent=txt;
+  el.querySelector('.dot').style.background=
     cls==='done'?'var(--accent)':cls==='err'?'var(--warn)':'var(--text-lo)';
 }
-function showProg(wId, fId, lId, msg) {
-  document.getElementById(lId).textContent = msg;
-  document.getElementById(fId).style.width = '0%';
+function showProg(wId,fId,lId,msg){
+  document.getElementById(lId).textContent=msg;
+  document.getElementById(fId).style.width='0%';
   document.getElementById(wId).classList.add('show');
 }
-function setFill(fId, pct){ document.getElementById(fId).style.width = pct + '%'; }
+function setFill(fId,pct){ document.getElementById(fId).style.width=pct+'%'; }
 function hideProg(wId){ document.getElementById(wId).classList.remove('show'); }
 
-function fmtBytes(b) {
-  if (b<1024)    return b + ' B';
-  if (b<1048576) return (b/1024).toFixed(1) + ' KB';
-  return (b/1048576).toFixed(2) + ' MB';
+function fmtBytes(b){
+  if(b<1024) return b+' B';
+  if(b<1048576) return (b/1024).toFixed(1)+' KB';
+  return (b/1048576).toFixed(2)+' MB';
 }
-function fmtTs(d) {
-  var p = function(n){ return String(n).padStart(2,'0'); };
-  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+
-         '_'+p(d.getHours())+p(d.getMinutes())+p(d.getSeconds());
+function fmtTs(d){
+  var p=function(n){return String(n).padStart(2,'0');};
+  return d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+
+         p(d.getHours())+p(d.getMinutes())+p(d.getSeconds());
 }
-function triggerDownload(url, name) {
-  var a = document.createElement('a');
-  a.href = url; a.download = name;
+function triggerDownload(url,name){
+  var a=document.createElement('a');
+  a.href=url; a.download=name;
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  setTimeout(function(){ URL.revokeObjectURL(url); }, 15000);
+  setTimeout(function(){ URL.revokeObjectURL(url); },15000);
 }
-function triggerFlash() {
-  var f = document.getElementById('flash');
+function triggerFlash(){
+  var f=document.getElementById('flash');
   f.classList.remove('go'); void f.offsetWidth; f.classList.add('go');
 }
-var tick = function(){ return new Promise(function(r){ requestAnimationFrame(r); }); };
+var tick=function(){ return new Promise(function(r){ requestAnimationFrame(r); }); };
 
-/* Space bar = capture */
-document.addEventListener('keydown', function(e){
-  if (e.code==='Space' && stream &&
-      document.getElementById('panel-camera').classList.contains('active')){
+
+/* Space = capture */
+document.addEventListener('keydown',function(e){
+  if(e.code==='Space'&&stream&&document.getElementById('panel-camera').classList.contains('active')){
     e.preventDefault(); captureAndCompress();
   }
 });
-window.addEventListener('beforeunload', function(){
-  if (stream) stream.getTracks().forEach(function(t){ t.stop(); });
+window.addEventListener('beforeunload',function(){
+  if(stream) stream.getTracks().forEach(function(t){ t.stop(); });
 });
 </script>
 </body>
